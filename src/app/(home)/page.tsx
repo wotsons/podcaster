@@ -1,5 +1,4 @@
-import type { FormattedEpisode } from "@/types/Episodes";
-import type EpisodesResponse from "@/types/Episodes";
+import type { Episode, FormattedEpisode } from "@/types/Episodes";
 import {convertDurationToTimeString} from "@/utils/convertDurationToTimeString";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
@@ -7,13 +6,14 @@ import styles from "./styles.module.scss";
 
 import { api } from "@/services/api";
 import Image from "next/image";
+import Link from "next/link";
 
 async function getEpisodes(): Promise<{
 	latestEpisodes: FormattedEpisode[];
 	allEpisodes: FormattedEpisode[];
 }> {
 	try {
-		const { data: EpisodesResponse } = await api.get<EpisodesResponse>(
+		const { data: EpisodesResponse } = await api.get<Episode>(
 			"/episodes",
 			{
 				params: {
@@ -74,22 +74,24 @@ export default async function Home() {
 				</h2>
 
 				<ul>
-					{latestEpisodes.map((episodes) => {
+					{latestEpisodes.map((episode) => {
 						return (
-							<li key={episodes.id}>
+							<li key={episode.id}>
 								<Image
 									width={192}
 									height={192}
-									src={episodes.thumbnail}
-									alt={episodes.title}
+									src={episode.thumbnail}
+									alt={episode.title}
 								/>
 
 								<div className={styles.episodeDetails}>
-									<a href="teste">{episodes.title}</a>
-									<p>{episodes.members}</p>
+									<Link href={`/episodes/${episode.id}`}>
+										{episode.title}
+									</Link>
+									<p>{episode.members}</p>
 
-									<span>{episodes.published_at}</span>
-									<span>{episodes.durationAsString}</span>
+									<span>{episode.published_at}</span>
+									<span>{episode.durationAsString}</span>
 								</div>
 
 								<button type="button">
@@ -122,23 +124,25 @@ export default async function Home() {
 					</thead>
 
 					<tbody>
-						{allEpisodes.map((episodes) => {
+						{allEpisodes.map((episode) => {
 							return (
-								<tr key={episodes.id}>
+								<tr key={episode.id}>
 									<td style={{ width: 100}}>
 										<Image
 											width={120}
 											height={120}
-											src={episodes.thumbnail}
-											alt={episodes.title}
+											src={episode.thumbnail}
+											alt={episode.title}
 										/>
 									</td>
 									<td>
-										<a href="teste">{episodes.title}</a>
+										<Link href={`/episodes/${episode.id}`}>
+										{episode.title}
+									</Link>
 									</td>
-									<td>{episodes.members}</td>
-									<td style={{ width: 100}}>{episodes.published_at}</td>
-									<td>{episodes.durationAsString}</td>
+									<td>{episode.members}</td>
+									<td style={{ width: 100}}>{episode.published_at}</td>
+									<td>{episode.durationAsString}</td>
 
 									<td>
 										<button type="button">
