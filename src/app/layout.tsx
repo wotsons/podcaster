@@ -1,5 +1,8 @@
 import { Lexend, Inter } from "next/font/google";
 import "@/styles/global.scss";
+import styles from "@/styles/page.module.scss";
+import { Header } from "@/components/Header";
+import { Player } from "@/components/Player";
 
 const lexend = Lexend({
 	variable: "--font-lexend",
@@ -19,7 +22,15 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="pt-BR" className={`${lexend.variable} ${inter.variable}`}>
-			<body>{children}</body>
+			<body>
+				<div className={styles.wrapper}>
+					<main>
+						<Header />
+						{children}
+					</main>
+					<Player />
+				</div>
+			</body>
 		</html>
 	);
 }

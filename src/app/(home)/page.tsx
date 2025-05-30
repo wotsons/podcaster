@@ -1,14 +1,71 @@
 import type { FormattedEpisode } from "@/types/Episodes";
+import type EpisodesResponse from "@/types/Episodes";
+import {convertDurationToTimeString} from "@/utils/convertDurationToTimeString";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale/pt-BR";
 import styles from "./styles.module.scss";
 
+import { api } from "@/services/api";
 import Image from "next/image";
 
-interface HomeProps {
+async function getEpisodes(): Promise<{
 	latestEpisodes: FormattedEpisode[];
 	allEpisodes: FormattedEpisode[];
+}> {
+	try {
+		const { data: EpisodesResponse } = await api.get<EpisodesResponse>(
+			"/episodes",
+			{
+				params: {
+					_limit: 12,
+					_sort: "published_at",
+					_order: "desc",
+				},
+			},
+		);
+
+		if (EpisodesResponse && Array.isArray(EpisodesResponse)) {
+			const formattedEpisodes = EpisodesResponse.map((episode) => {
+				return {
+					id: episode.id,
+					title: episode.title,
+					thumbnail: episode.thumbnail,
+					members: episode.members,
+					published_at: format(parseISO(episode.published_at), "d MMM yy", {
+						locale: ptBR,
+					}),
+					duration: Number(episode.file.duration),
+					durationAsString: convertDurationToTimeString(
+						Number(episode.file.duration),
+					),
+					url: episode.file.url,
+					description: episode.description,
+				};
+			});
+
+			const latestEpisodes = formattedEpisodes.slice(0, 2);
+			const allEpisodes = formattedEpisodes.slice(2, formattedEpisodes.length);
+
+			return {
+				latestEpisodes,
+				allEpisodes,
+			};
+		}
+		console.error(
+			"API did not return episodes in the expected format. Response data:",
+			EpisodesResponse,
+		);
+		return { latestEpisodes: [], allEpisodes: [] };
+	} catch (error) {
+		console.error("Error fetching episodes:", error);
+		return { latestEpisodes: [], allEpisodes: [] };
+	}
 }
 
-export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
+export default async function Home() {
+
+	const { latestEpisodes, allEpisodes } = await getEpisodes();
+
 	return (
 		<div className={styles.homepage}>
 			<section className={styles.latestEpisodes}>
@@ -25,7 +82,6 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
 									height={192}
 									src={episodes.thumbnail}
 									alt={episodes.title}
-									objectFit="cover"
 								/>
 
 								<div className={styles.episodeDetails}>
@@ -42,7 +98,6 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
 										height={30}
 										src="/play-green.svg"
 										alt="Tocar episódio"
-										objectFit="cover"
 									/>
 								</button>
 							</li>
@@ -56,12 +111,14 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
 
 				<table cellSpacing={0}>
 					<thead>
-						<th />
-						<th>Podcast</th>
-						<th>Integrantes</th>
-						<th>Data</th>
-						<th>Duração</th>
-						<th/>
+						<tr>
+							<th />
+							<th>Podcast</th>
+							<th>Integrantes</th>
+							<th>Data</th>
+							<th>Duração</th>
+							<th />
+						</tr>
 					</thead>
 
 					<tbody>
@@ -74,11 +131,10 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
 											height={120}
 											src={episodes.thumbnail}
 											alt={episodes.title}
-											objectFit="cover"
 										/>
 									</td>
 									<td>
-										<a href="">{episodes.title}</a>
+										<a href="teste">{episodes.title}</a>
 									</td>
 									<td>{episodes.members}</td>
 									<td style={{ width: 100}}>{episodes.published_at}</td>
@@ -91,16 +147,13 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
 												height={30}
 												src="/play-green.svg"
 												alt="Tocar episódio"
-												objectFit="cover"
 											/>
 										</button>
 									</td>
-
 								</tr>);
 						})}
 					</tbody>
 				</table>
-
 			</section>
 		</div>
 	);
