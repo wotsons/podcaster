@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['storage.googleapis.com'],
+    remotePatterns: [new URL('storage.googleapis.com')],
   },
 };
 
