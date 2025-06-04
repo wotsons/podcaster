@@ -3,6 +3,7 @@ import "@/styles/global.scss";
 import styles from "@/styles/layout.module.scss";
 import { Header } from "@/components/Header";
 import { Player } from "@/components/Player";
+import { PlayerContextProvider } from "@/context/PlayerContext";
 
 const lexend = Lexend({
 	variable: "--font-lexend",
@@ -23,13 +24,15 @@ export default function RootLayout({
 	return (
 		<html lang="pt-BR" className={`${lexend.variable} ${inter.variable}`}>
 			<body>
-				<div className={styles.wrapper}>
-					<main>
-						<Header />
-						{children}
-					</main>
-					<Player />
-				</div>
+				<PlayerContextProvider>
+					<div className={styles.wrapper}>
+						<main>
+							<Header />
+							{children}
+						</main>
+						<Player />
+					</div>
+				</PlayerContextProvider>
 			</body>
 		</html>
 	);

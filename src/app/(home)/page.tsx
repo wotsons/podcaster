@@ -1,12 +1,14 @@
+
 import type { Episode, FormattedEpisode } from "@/types/Episodes";
 import {convertDurationToTimeString} from "@/utils/convertDurationToTimeString";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import styles from "./styles.module.scss";
 
+import { LatestEpisodesList } from "@/components/LatestEpisodesList";
+import { AllEpisodesTableRow } from "@/components/AllEpisodesTableRow";
+
 import { api } from "@/services/api";
-import Image from "next/image";
-import Link from "next/link";
 
 async function getEpisodes(): Promise<{
 	latestEpisodes: FormattedEpisode[];
@@ -63,8 +65,7 @@ async function getEpisodes(): Promise<{
 }
 
 export default async function Home() {
-
-	const { latestEpisodes, allEpisodes } = await getEpisodes();
+  const { latestEpisodes, allEpisodes } = await getEpisodes();
 
 	return (
 		<div className={styles.homepage}>
@@ -73,39 +74,8 @@ export default async function Home() {
 					Últimos lançamentos
 				</h2>
 
-				<ul>
-					{latestEpisodes.map((episode) => {
-						return (
-							<li key={episode.id}>
-								<Image
-									width={192}
-									height={192}
-									src={episode.thumbnail}
-									alt={episode.title}
-								/>
+				<LatestEpisodesList latestEpisodes={latestEpisodes} />
 
-								<div className={styles.episodeDetails}>
-									<Link href={`/episodes/${episode.id}`}>
-										{episode.title}
-									</Link>
-									<p>{episode.members}</p>
-
-									<span>{episode.published_at}</span>
-									<span>{episode.durationAsString}</span>
-								</div>
-
-								<button type="button">
-									<Image
-										width={30}
-										height={30}
-										src="/play-green.svg"
-										alt="Tocar episódio"
-									/>
-								</button>
-							</li>
-						);
-					})}
-				</ul>
 			</section>
 
 			<section className={styles.allEpisodes}>
@@ -124,38 +94,14 @@ export default async function Home() {
 					</thead>
 
 					<tbody>
-						{allEpisodes.map((episode) => {
-							return (
-								<tr key={episode.id}>
-									<td style={{ width: 100}}>
-										<Image
-											width={120}
-											height={120}
-											src={episode.thumbnail}
-											alt={episode.title}
-										/>
-									</td>
-									<td>
-										<Link href={`/episodes/${episode.id}`}>
-										{episode.title}
-									</Link>
-									</td>
-									<td>{episode.members}</td>
-									<td style={{ width: 100}}>{episode.published_at}</td>
-									<td>{episode.durationAsString}</td>
-
-									<td>
-										<button type="button">
-											<Image
-												width={30}
-												height={30}
-												src="/play-green.svg"
-												alt="Tocar episódio"
-											/>
-										</button>
-									</td>
-								</tr>);
-						})}
+						{allEpisodes.map((episode, index) => (
+							<AllEpisodesTableRow
+								key={episode.id}
+								episode={episode}
+								allEpisodes={allEpisodes}
+								index={index}
+							/>
+						))}
 					</tbody>
 				</table>
 			</section>
