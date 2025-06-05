@@ -22,9 +22,20 @@ export function AllEpisodesTableRow({
     episodeList: currentPlayList,
     currentEpisodeIndex,
     isPlaying,
+    togglePlay,
   } = usePlayer();
-  const currentPlayingEpisode = currentPlayList[currentEpisodeIndex];
 
+  const currentPlayingEpisode = currentPlayList[currentEpisodeIndex];
+  const isThisEpisodeTheCurrentOneInPlayer = currentPlayingEpisode?.id === episode.id;
+
+  const handlePlayButtonClick = () => {
+    if (isThisEpisodeTheCurrentOneInPlayer) {
+      togglePlay();
+    } else {
+      playList(allEpisodes, index);
+    }
+  };
+  
   return (
     <tr className={styles.episodeRow}>
       <td>
@@ -45,15 +56,15 @@ export function AllEpisodesTableRow({
       <td>
         <button
           type="button"
-          onClick={() => playList(allEpisodes, index)}
+          onClick={handlePlayButtonClick}
           className={styles.playButton}
         >
           <Image
             width={24}
             height={24}
-            src={"/play-green.svg"}
+            src={isThisEpisodeTheCurrentOneInPlayer && isPlaying ? "/pause.svg" : "/play-green.svg"}
             alt={
-              isPlaying && currentPlayingEpisode?.id === episode.id
+              isThisEpisodeTheCurrentOneInPlayer && isPlaying
                 ? "Pausar episódio"
                 : `Tocar episódio ${episode.title}`
             }

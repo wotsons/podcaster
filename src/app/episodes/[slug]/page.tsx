@@ -2,21 +2,18 @@
 import React from 'react';
 import styles from './styles.module.scss'
 import { api } from '@/services/api';
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale/pt-BR";
-import { convertDurationToTimeString } from '@/utils/convertDurationToTimeString';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import type { Episode, FormattedEpisode } from "@/types/Episodes";
-import { GetStaticPaths } from 'next';
+import { formatEpisodeData } from '@/utils/formatEpisodeData';
 import EpisodePlayerButton from '@/components/EpisodePlayerButton';
 
 interface EpisodePageProps {
-  params:  Promise<{
+  params: {
     slug: string;
-  }>;
+  };
 }
 
 async function getEpisodeData(slug: string): Promise<FormattedEpisode | null> {
@@ -28,23 +25,7 @@ async function getEpisodeData(slug: string): Promise<FormattedEpisode | null> {
       return null;
     }
 
-    const episode: FormattedEpisode = {
-      id: data.id,
-      title: data.title,
-      thumbnail: data.thumbnail,
-      members: data.members,
-      published_at: format(parseISO(data.published_at), "d MMM yy", {
-        locale: ptBR,
-      }),
-      duration: Number(data.file.duration),
-      durationAsString: convertDurationToTimeString(
-        Number(data.file.duration),
-      ),
-      url: data.file.url,
-      description: data.description,
-    };
-
-    return episode;
+    return formatEpisodeData(data);
   } catch (error) {
     console.error(`Erro ao buscar dados do episódio para o slug "${slug}":`, error);
     return null;
@@ -52,7 +33,7 @@ async function getEpisodeData(slug: string): Promise<FormattedEpisode | null> {
 }
 
 export default async function EpisodePage({ params }: EpisodePageProps) {
-  const { slug } = await params;
+  const { slug } = params;
   const episode = await getEpisodeData(slug);
 
   if (!episode) {
@@ -92,27 +73,6 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
       />
     </div>
   );
-}
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  const { data } = await api.get("/episodes", {
-    params: {
-      _limit: 2,
-      _sort: "published_at",
-      _order: "desc",
-    }
-  })
-
-  const paths = data.map((episode: Episode) => ({
-    params: {
-      slug: episode.title
-    }
-  }))
-
-  return {
-    paths,
-    fallback: "blocking",
-  }
 }
 
 export async function generateStaticParams() {

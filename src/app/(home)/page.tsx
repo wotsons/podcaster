@@ -1,12 +1,10 @@
 
 import type { Episode, FormattedEpisode } from "@/types/Episodes";
-import {convertDurationToTimeString} from "@/utils/convertDurationToTimeString";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale/pt-BR";
 import styles from "./styles.module.scss";
 
 import { LatestEpisodesList } from "@/components/LatestEpisodesList";
 import { AllEpisodesTableRow } from "@/components/AllEpisodesTableRow";
+import { formatEpisodeData } from "@/utils/formatEpisodeData";
 
 import { api } from "@/services/api";
 
@@ -15,7 +13,7 @@ async function getEpisodes(): Promise<{
 	allEpisodes: FormattedEpisode[];
 }> {
 	try {
-		const { data: EpisodesResponse } = await api.get<Episode>(
+		const { data: episodesResponse } = await api.get<Episode[]>(
 			"/episodes",
 			{
 				params: {
@@ -26,36 +24,19 @@ async function getEpisodes(): Promise<{
 			},
 		);
 
-		if (EpisodesResponse && Array.isArray(EpisodesResponse)) {
-			const formattedEpisodes = EpisodesResponse.map((episode) => {
-				return {
-					id: episode.id,
-					title: episode.title,
-					thumbnail: episode.thumbnail,
-					members: episode.members,
-					published_at: format(parseISO(episode.published_at), "d MMM yy", {
-						locale: ptBR,
-					}),
-					duration: Number(episode.file.duration),
-					durationAsString: convertDurationToTimeString(
-						Number(episode.file.duration),
-					),
-					url: episode.file.url,
-					description: episode.description,
-				};
-			});
+		if (episodesResponse && Array.isArray(episodesResponse)) {
+			const formattedEpisodes = episodesResponse.map(formatEpisodeData);
 
 			const latestEpisodes = formattedEpisodes.slice(0, 2);
 			const allEpisodes = formattedEpisodes.slice(2, formattedEpisodes.length);
-
 			return {
 				latestEpisodes,
 				allEpisodes,
 			};
 		}
 		console.error(
-			"API did not return episodes in the expected format. Response data:",
-			EpisodesResponse,
+			"A API não retornou episódios no formato esperado. Dados da resposta:",
+			episodesResponse,
 		);
 		return { latestEpisodes: [], allEpisodes: [] };
 	} catch (error) {

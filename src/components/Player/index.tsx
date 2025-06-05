@@ -17,25 +17,6 @@ export function Player() {
 	const { isPlaying, episodeList, currentEpisodeIndex, togglePlay, setPlayingState, toggleShuffle, isShuffling, playNext, playPrevious, toggleLoop, isLooping, hasNext, hasPrevious, clearPlayer } = usePlayer();
 	const episode = episodeList[currentEpisodeIndex];
 
-	function setupProgressListener() {
-		if (!audioRef.current) return;
-
-		audioRef.current.currentTime = 0
-
-		audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
-
-		function handleTimeUpdate() {
-      setProgress(Math.floor(audioRef.current!.currentTime));
-    }
-  }
-
-  function handleSeek(amount: number) {
-		if (!audioRef.current) return;
-
-    audioRef.current.currentTime = amount
-    setProgress(amount)
-  }
-
   function handleEpisodeEnded() {
     if (hasNext) {
       playNext()
@@ -43,6 +24,39 @@ export function Player() {
       clearPlayer()
     }
   }
+
+  useEffect(() => {
+    const audioElement = audioRef.current;
+
+    if (!audioElement || !episode) {
+      setProgress(0);
+      return;
+    }
+
+    const handleTimeUpdate = () => {
+      if (audioElement.duration) {
+        setProgress(Math.floor(audioElement.currentTime));
+      }
+    };
+
+    const handleMetadataLoaded = () => {
+      audioElement.currentTime = 0;
+      setProgress(0);
+      audioElement.addEventListener('timeupdate', handleTimeUpdate);
+    };
+
+    if (audioElement.readyState >= HTMLMediaElement.HAVE_METADATA && audioElement.currentSrc === episode.url) {
+      handleMetadataLoaded();
+    } else {
+      setProgress(0);
+      audioElement.addEventListener('loadedmetadata', handleMetadataLoaded);
+    }
+
+    return () => {
+      audioElement.removeEventListener('loadedmetadata', handleMetadataLoaded);
+      audioElement.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, [episode]);
 
 	useEffect(() => {
     if (!audioRef.current) {
@@ -57,6 +71,13 @@ export function Player() {
       audioRef.current.pause();
     }
   }, [isPlaying])
+
+  function handleSeek(amount: number) {
+    if (!audioRef.current) return;
+
+    audioRef.current.currentTime = amount;
+    setProgress(amount);
+  }
 
 	return (
 		<div className={styles.playerContainer}>
@@ -107,11 +128,9 @@ export function Player() {
 						src={episode.url}
             ref={audioRef}
             autoPlay
-            loop={isLooping}
             onPlay={() => setPlayingState(true)}
             onPause={() => setPlayingState(false)}
             onEnded={handleEpisodeEnded}
-            onLoadedMetadata={setupProgressListener}
 					/>
 				)}
 

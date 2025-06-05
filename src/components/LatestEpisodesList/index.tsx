@@ -18,8 +18,19 @@ export function LatestEpisodesList({
     episodeList: currentPlayList,
     currentEpisodeIndex,
     isPlaying,
+    togglePlay,
   } = usePlayer();
   const currentPlayingEpisode = currentPlayList[currentEpisodeIndex];
+
+  const handlePlayButtonClick = (episodeId: number, index: number) => {
+    const isThisEpisodeTheCurrentOneInPlayer = currentPlayingEpisode?.id === episodeId;
+
+    if (isThisEpisodeTheCurrentOneInPlayer) {
+      togglePlay();
+    } else {
+      playList(latestEpisodes, index);
+    }
+  };
 
   return (
     <ul className={styles.episodeList}>
@@ -32,7 +43,7 @@ export function LatestEpisodesList({
             alt={episode.title}
             className={styles.thumbnail}
           />
-          
+
           <div className={styles.episodeDetails}>
             <Link href={`/episodes/${episode.id}`}>{episode.title}</Link>
             <p>{episode.members}</p>
@@ -42,13 +53,13 @@ export function LatestEpisodesList({
 
           <button
             type="button"
-            onClick={() => playList(latestEpisodes, index)}
+            onClick={() => handlePlayButtonClick(episode.id, index)}
             className={styles.playButton}
           >
             <Image
               width={30}
               height={30}
-              src="/play-green.svg"
+              src={currentPlayingEpisode?.id === episode.id && isPlaying ? "/pause.svg" : "/play-green.svg"}
               alt={
                 isPlaying && currentPlayingEpisode?.id === episode.id
                   ? "Pausar episódio"
