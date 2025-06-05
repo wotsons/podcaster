@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation';
 
 import type { Episode, FormattedEpisode } from "@/types/Episodes";
 import { GetStaticPaths } from 'next';
-import EpisodePlayerButton from './EpisodePlayerButton';
+import EpisodePlayerButton from '@/components/EpisodePlayerButton';
 
 interface EpisodePageProps {
   params:  Promise<{
