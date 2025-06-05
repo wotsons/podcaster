@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation';
 
 import type { Episode, FormattedEpisode } from "@/types/Episodes";
 import { GetStaticPaths } from 'next';
+import EpisodePlayerButton from './EpisodePlayerButton';
 
 interface EpisodePageProps {
   params:  Promise<{
@@ -75,9 +76,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
           priority
         />
 
-        <button type="button" aria-label="Tocar episódio">
-          <img src="/play.svg" alt="Tocar episódio" />
-        </button>
+        <EpisodePlayerButton episode={episode} />
       </div>
 
       <header className={styles.episodeHeader}>
